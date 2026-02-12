@@ -125,6 +125,7 @@ void Window::draw_frame() {
 
 	if (inner) {
 		werase(inner);
+		draw_content();
 		wrefresh(inner);
 	}
 }
@@ -141,6 +142,13 @@ void Window::repaint_internal(bool force) {
 			child->repaint_internal(should_draw);
 		}
 	}
+}
+
+void Window::draw_content() {
+}
+
+Window* Window::parent_window() const {
+	return parent;
 }
 
 }

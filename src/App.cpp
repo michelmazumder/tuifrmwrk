@@ -74,12 +74,6 @@ void App::update_ui() {
 	if (!main_window) return;
 
 	main_window->repaint();
-	WINDOW* inner = main_window->inner_window();
-	if (!inner) return;
-
-	werase(inner);
-	mvwprintw(inner, 0, 0, "Premi Ctrl+Q per uscire, Ctrl+C per chiusura drastica.");
-	wrefresh(inner);
 }
 
 bool App::handle_input(int ch) {

@@ -26,6 +26,10 @@ namespace tui {
 		void add_child(Window* child);
 		void remove_child(Window* child);
 
+	protected:
+		virtual void draw_content();
+		Window* parent_window() const;
+
 	private:
 		std::string title;
 		WINDOW* outer;
