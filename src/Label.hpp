@@ -1,5 +1,4 @@
-#ifndef TUI_LABEL_HPP
-#define TUI_LABEL_HPP
+#pragma once
 
 #include "Window.hpp"
 
@@ -11,9 +10,15 @@ namespace tui {
 	public:
 		Label(const std::string& labelText,
 		      int heightPercent,
+		      int widthPercent);
+		Label(const std::string& labelText,
+		      int heightPercent,
 		      int widthPercent,
-		      std::shared_ptr<Window> parentWindow = nullptr);
+		      Window& parentWindow);
 		virtual ~Label();
+
+		Label(const Label&) = delete;
+		Label& operator=(const Label&) = delete;
 
 		const std::string& get_text() const;
 		void set_text(const std::string& labelText);
@@ -27,5 +32,3 @@ namespace tui {
 		void center_on_parent();
 	};
 }
-
-#endif

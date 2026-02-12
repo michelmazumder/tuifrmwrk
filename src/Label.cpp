@@ -6,8 +6,17 @@ namespace tui {
 
 Label::Label(const std::string& labelText,
              int heightPercent,
+             int widthPercent)
+	: Window("", heightPercent, widthPercent),
+	  text(labelText) {
+	center_on_parent();
+	mark_need_repaint();
+}
+
+Label::Label(const std::string& labelText,
+             int heightPercent,
              int widthPercent,
-             std::shared_ptr<Window> parentWindow)
+             Window& parentWindow)
 	: Window("", heightPercent, widthPercent, parentWindow),
 	  text(labelText) {
 	center_on_parent();
@@ -55,9 +64,9 @@ void Label::center_on_parent() {
 	if (!outer) return;
 
 	auto parent_inner = std::shared_ptr<WINDOW>();
-	auto parent = parent_window();
-	if (parent) {
-		parent_inner = parent->inner_window();
+	auto parent_ref = parent_window();
+	if (parent_ref) {
+		parent_inner = parent_ref->get().inner_window();
 	}
 
 	int parent_h = 0;

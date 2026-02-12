@@ -29,7 +29,7 @@ App::App(const std::string& appName):
 	curs_set(0);            // Nascondi il cursore
 	timeout(100);           // Getch non bloccante (100ms)
 
-	main_window = std::make_shared<Window>(app_name, 100, 100, nullptr);
+	main_window = std::make_shared<Window>(app_name, 100, 100);
 
 	// Avvio del thread per i task in background
 	worker_thread = std::thread(&App::worker_loop, this);

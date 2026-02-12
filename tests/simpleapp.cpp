@@ -9,8 +9,8 @@ class MyApp : public tui::App {
 public:
     MyApp(const char *appName): tui::App(appName), label(nullptr)
     {
-        label = std::make_shared<tui::Label>("10", 30, 60, main_window);
-        main_window->add_child(label);
+        label = std::make_shared<tui::Label>("10", 30, 60, *main_window);
+        main_window->add_child(*label);
     }
 
     ~MyApp() override = default;

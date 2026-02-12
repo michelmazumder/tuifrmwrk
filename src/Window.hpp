@@ -1,9 +1,9 @@
-#ifndef TUI_WINDOW_HPP
-#define TUI_WINDOW_HPP
+#pragma once
 
 #include <ncurses.h>
-
+#include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -12,9 +12,15 @@ namespace tui {
 	public:
 		Window(const std::string& winTitle,
 		       int heightPercent,
+		       int widthPercent);
+		Window(const std::string& winTitle,
+		       int heightPercent,
 		       int widthPercent,
-		       std::shared_ptr<Window> parentWindow = nullptr);
+		       Window& parentWindow);
 		virtual ~Window();
+
+		Window(const Window&) = delete;
+		Window& operator=(const Window&) = delete;
 
 		void set_title(const std::string& winTitle);
 		void mark_need_repaint();
@@ -24,12 +30,12 @@ namespace tui {
 		std::shared_ptr<WINDOW> outer_window() const;
 		std::shared_ptr<WINDOW> inner_window() const;
 
-		void add_child(const std::shared_ptr<Window>& child);
-		void remove_child(const std::shared_ptr<Window>& child);
+		void add_child(Window& child);
+		void remove_child(Window& child);
 
 	protected:
 		virtual void draw_content();
-		std::shared_ptr<Window> parent_window() const;
+		std::optional<std::reference_wrapper<Window>> parent_window() const;
 
 	private:
 		struct WindowDeleter {
@@ -39,8 +45,8 @@ namespace tui {
 		std::string title;
 		std::unique_ptr<WINDOW, WindowDeleter> outer;
 		std::unique_ptr<WINDOW, WindowDeleter> inner;
-		std::weak_ptr<Window> parent;
-		std::vector<std::weak_ptr<Window>> children;
+		std::optional<std::reference_wrapper<Window>> parent;
+		std::vector<std::reference_wrapper<Window>> children;
 		bool need_repaint;
 
 		void create_windows(int heightPercent, int widthPercent);
@@ -48,5 +54,3 @@ namespace tui {
 		void repaint_internal(bool force);
 	};
 }
-
-#endif
