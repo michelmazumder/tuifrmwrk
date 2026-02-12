@@ -17,7 +17,8 @@ App::App(const char *appName): App(std::string(appName))
 
 App::App(const std::string& appName): 
 	app_name(appName),
-	running(true)
+	running(true),
+	main_window(nullptr)
 {
 	// Inizializzazione ncurses
 	initscr();
@@ -27,12 +28,18 @@ App::App(const std::string& appName):
 	curs_set(0);            // Nascondi il cursore
 	timeout(100);           // Getch non bloccante (100ms)
 
+	main_window = new Window(app_name, 100, 100, nullptr);
+
 	// Avvio del thread per i task in background
 	worker_thread = std::thread(&App::worker_loop, this);
 }
 
 App::~App() {
 	stop_worker();
+	if (main_window) {
+		delete main_window;
+		main_window = nullptr;
+	}
 	endwin(); // Chiude ncurses
 }
 
@@ -64,9 +71,15 @@ void App::run() {
 }
 
 void App::update_ui() {
-	erase();
-	mvprintw(0, 0, "Premi Ctrl+Q per uscire, Ctrl+C per chiusura drastica.");
-	refresh();
+	if (!main_window) return;
+
+	main_window->repaint();
+	WINDOW* inner = main_window->inner_window();
+	if (!inner) return;
+
+	werase(inner);
+	mvwprintw(inner, 0, 0, "Premi Ctrl+Q per uscire, Ctrl+C per chiusura drastica.");
+	wrefresh(inner);
 }
 
 bool App::handle_input(int ch) {

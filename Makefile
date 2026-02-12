@@ -8,8 +8,8 @@ CXX := c++
 CXXFLAGS := -std=c++17 -Wall -Wextra -pedantic -I$(SRC_DIR)
 LDFLAGS := -lncurses -pthread
 
-SOURCES := $(SRC_DIR)/App.cpp $(TEST_DIR)/simpleapp.cpp
-OBJECTS := $(OBJ_DIR)/App.o $(OBJ_DIR)/simpleapp.o
+SOURCES := $(SRC_DIR)/App.cpp $(SRC_DIR)/Window.cpp $(TEST_DIR)/simpleapp.cpp
+OBJECTS := $(OBJ_DIR)/App.o $(OBJ_DIR)/Window.o $(OBJ_DIR)/simpleapp.o
 TARGET := $(BIN_DIR)/$(APP_NAME)
 
 .PHONY: all clean

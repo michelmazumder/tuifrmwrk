@@ -6,6 +6,8 @@
 #include <condition_variable>
 #include <queue>
 
+#include "Window.hpp"
+
 
 namespace tui {
 	class App {
@@ -24,6 +26,7 @@ namespace tui {
 
 		protected:
 			std::atomic<bool> running;
+			Window* main_window;
 			virtual void update_ui();
 			virtual bool handle_input(int character);
 
