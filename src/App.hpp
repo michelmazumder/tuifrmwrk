@@ -5,6 +5,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <queue>
+#include <memory>
 
 #include "Window.hpp"
 
@@ -26,7 +27,7 @@ namespace tui {
 
 		protected:
 			std::atomic<bool> running;
-			Window* main_window;
+			std::shared_ptr<Window> main_window;
 			virtual void update_ui();
 			virtual bool handle_input(int character);
 

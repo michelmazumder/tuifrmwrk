@@ -19,26 +19,19 @@ int clamp_min(int value, int min_value) {
 Window::Window(const std::string& winTitle,
                int heightPercent,
                int widthPercent,
-               Window* parentWindow)
+               std::shared_ptr<Window> parentWindow)
 	: title(winTitle),
-	  outer(nullptr),
-	  inner(nullptr),
 	  parent(parentWindow),
 	  need_repaint(true) {
 	create_windows(heightPercent, widthPercent);
-	if (parent) {
-		parent->add_child(this);
-	}
 }
 
 Window::~Window() {
-	if (inner) {
-		delwin(inner);
-		inner = nullptr;
-	}
-	if (outer) {
-		delwin(outer);
-		outer = nullptr;
+}
+
+void Window::WindowDeleter::operator()(WINDOW* window) const {
+	if (window) {
+		delwin(window);
 	}
 }
 
@@ -55,24 +48,34 @@ bool Window::needs_repaint() const {
 	return need_repaint;
 }
 
-WINDOW* Window::outer_window() const {
-	return outer;
+std::shared_ptr<WINDOW> Window::outer_window() const {
+	return std::shared_ptr<WINDOW>(outer.get(), [](WINDOW*) {});
 }
 
-WINDOW* Window::inner_window() const {
-	return inner;
+std::shared_ptr<WINDOW> Window::inner_window() const {
+	return std::shared_ptr<WINDOW>(inner.get(), [](WINDOW*) {});
 }
 
-void Window::add_child(Window* child) {
+void Window::add_child(const std::shared_ptr<Window>& child) {
 	if (!child) return;
-	if (std::find(children.begin(), children.end(), child) == children.end()) {
-		children.push_back(child);
+	for (const auto& existing : children) {
+		auto locked = existing.lock();
+		if (locked && locked.get() == child.get()) {
+			return;
+		}
 	}
+	children.emplace_back(child);
 }
 
-void Window::remove_child(Window* child) {
-	auto it = std::remove(children.begin(), children.end(), child);
-	children.erase(it, children.end());
+void Window::remove_child(const std::shared_ptr<Window>& child) {
+	if (!child) return;
+	children.erase(
+		std::remove_if(children.begin(), children.end(),
+			[&child](const std::weak_ptr<Window>& item) {
+				auto locked = item.lock();
+				return !locked || locked.get() == child.get();
+			}),
+		children.end());
 }
 
 void Window::repaint() {
@@ -88,9 +91,11 @@ void Window::create_windows(int heightPercent, int widthPercent) {
 	int base_y = 0;
 	int base_x = 0;
 
-	if (parent && parent->inner_window()) {
-		getmaxyx(parent->inner_window(), base_h, base_w);
-		getbegyx(parent->inner_window(), base_y, base_x);
+	auto parent_locked = parent.lock();
+	auto parent_inner = parent_locked ? parent_locked->inner_window() : nullptr;
+	if (parent_inner) {
+		getmaxyx(parent_inner.get(), base_h, base_w);
+		getbegyx(parent_inner.get(), base_y, base_x);
 	} else {
 		getmaxyx(stdscr, base_h, base_w);
 		getbegyx(stdscr, base_y, base_x);
@@ -101,32 +106,35 @@ void Window::create_windows(int heightPercent, int widthPercent) {
 	out_h = clamp_min(out_h, 3);
 	out_w = clamp_min(out_w, 3);
 
-	outer = newwin(out_h, out_w, base_y, base_x);
-	inner = newwin(out_h - 2, out_w - 2, base_y + 1, base_x + 1);
+	outer.reset(newwin(out_h, out_w, base_y, base_x));
+	inner.reset(newwin(out_h - 2, out_w - 2, base_y + 1, base_x + 1));
 }
 
 void Window::draw_frame() {
-	if (!outer) return;
+	auto outer_win = outer_window();
+	auto inner_win = inner_window();
+	if (!outer_win) return;
 
-	werase(outer);
-	box(outer, 0, 0);
+	werase(outer_win.get());
+	box(outer_win.get(), 0, 0);
 
 	if (!title.empty()) {
 		int max_y = 0;
 		int max_x = 0;
-		getmaxyx(outer, max_y, max_x);
+		getmaxyx(outer_win.get(), max_y, max_x);
+		(void)max_y;
 		int max_len = max_x > 2 ? max_x - 2 : 0;
 		if (max_len > 0) {
-			mvwaddnstr(outer, 0, 1, title.c_str(), max_len);
+			mvwaddnstr(outer_win.get(), 0, 1, title.c_str(), max_len);
 		}
 	}
 
-	wrefresh(outer);
+	wrefresh(outer_win.get());
 
-	if (inner) {
-		werase(inner);
+	if (inner_win) {
+		werase(inner_win.get());
 		draw_content();
-		wrefresh(inner);
+		wrefresh(inner_win.get());
 	}
 }
 
@@ -137,18 +145,24 @@ void Window::repaint_internal(bool force) {
 		need_repaint = false;
 	}
 
-	for (Window* child : children) {
-		if (child) {
-			child->repaint_internal(should_draw);
-		}
-	}
+	children.erase(
+		std::remove_if(children.begin(), children.end(),
+			[should_draw](const std::weak_ptr<Window>& item) {
+				auto locked = item.lock();
+				if (!locked) {
+					return true;
+				}
+				locked->repaint_internal(should_draw);
+				return false;
+			}),
+		children.end());
 }
 
 void Window::draw_content() {
 }
 
-Window* Window::parent_window() const {
-	return parent;
+std::shared_ptr<Window> Window::parent_window() const {
+	return parent.lock();
 }
 
 }

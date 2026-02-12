@@ -7,6 +7,7 @@
 #include <condition_variable>
 #include <functional>
 #include <atomic>
+#include <memory>
 #include <csignal>
 #include "App.hpp"
 
@@ -28,7 +29,7 @@ App::App(const std::string& appName):
 	curs_set(0);            // Nascondi il cursore
 	timeout(100);           // Getch non bloccante (100ms)
 
-	main_window = new Window(app_name, 100, 100, nullptr);
+	main_window = std::make_shared<Window>(app_name, 100, 100, nullptr);
 
 	// Avvio del thread per i task in background
 	worker_thread = std::thread(&App::worker_loop, this);
@@ -36,10 +37,7 @@ App::App(const std::string& appName):
 
 App::~App() {
 	stop_worker();
-	if (main_window) {
-		delete main_window;
-		main_window = nullptr;
-	}
+	main_window.reset();
 	endwin(); // Chiude ncurses
 }
 

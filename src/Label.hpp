@@ -3,6 +3,7 @@
 
 #include "Window.hpp"
 
+#include <memory>
 #include <string>
 
 namespace tui {
@@ -11,7 +12,7 @@ namespace tui {
 		Label(const std::string& labelText,
 		      int heightPercent,
 		      int widthPercent,
-		      Window* parentWindow = nullptr);
+		      std::shared_ptr<Window> parentWindow = nullptr);
 		virtual ~Label();
 
 		const std::string& get_text() const;
