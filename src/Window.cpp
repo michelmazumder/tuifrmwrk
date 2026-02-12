@@ -49,6 +49,18 @@ void Window::set_title(const std::string& winTitle) {
 	mark_need_repaint();
 }
 
+void Window::set_position(int y, int x) {
+	auto outer_win = outer_window();
+	auto inner_win = inner_window();
+	if (outer_win) {
+		mvwin(outer_win.get(), y, x);
+	}
+	if (inner_win) {
+		mvwin(inner_win.get(), y + 1, x + 1);
+	}
+	mark_need_repaint();
+}
+
 void Window::mark_need_repaint() {
 	need_repaint = true;
 }

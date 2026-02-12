@@ -23,6 +23,7 @@ namespace tui {
 		Window& operator=(const Window&) = delete;
 
 		void set_title(const std::string& winTitle);
+		void set_position(int y, int x);
 		void mark_need_repaint();
 		bool needs_repaint() const;
 		void repaint();

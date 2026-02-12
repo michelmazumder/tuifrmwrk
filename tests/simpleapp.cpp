@@ -7,9 +7,13 @@
 
 class MyApp : public tui::App {
 public:
-    MyApp(const char *appName): tui::App(appName), label(nullptr)
+    MyApp(const char *appName): tui::App(appName), title_label(nullptr), label(nullptr)
     {
-        label = std::make_shared<tui::Label>("10", 30, 60, *main_window);
+        title_label = std::make_shared<tui::Label>("App di test per TUIfrmwrk", 10, 60, *main_window);
+        title_label->set_position(2, 10);
+        main_window->add_child(*title_label);
+        
+        label = std::make_shared<tui::Label>("10", 10, 30, *main_window);
         main_window->add_child(*label);
     }
 
@@ -18,6 +22,7 @@ public:
     std::shared_ptr<tui::Label> get_label() { return label; }
 
 private:
+    std::shared_ptr<tui::Label> title_label;
     std::shared_ptr<tui::Label> label;
 };
 
